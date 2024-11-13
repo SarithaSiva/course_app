@@ -1,0 +1,84 @@
+node {
+    // Specify the Node.js tool
+    def nodeTool = tool name: 'nodejs'
+    environment{
+       DOCKER_USERNAME="saritha752"
+       DOCKER_PASSWORD="Hani@1234" 
+       KUBECONFIG = '/home/jenkins/.kube/config'  // adjust as needed
+    }
+    try {
+        stage('Git checkout') {
+            echo 'Hello'
+            git url:"https://github.com/Sarithacs07/Youtube_clone.git",branch:"main"
+        }
+
+        stage('Node install') {
+            // Use the Node.js tool for the npm commands
+            withEnv(["PATH+NODE=${nodeTool}/bin"]) {
+                sh 'npm install'
+            }
+        }
+
+        stage('Node build') {
+            withEnv(["PATH+NODE=${nodeTool}/bin"]) {
+                sh 'npm run build'
+            }
+        }
+        stage('Build Docker Image') {
+           sh 'docker build -t honeyedu .'
+           }
+        
+        stage('Push Docker Image') {
+         withCredentials([usernamePassword(credentialsId: '70052536-5c15-4d30-ab46-bb4f5954ed5b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+         sh "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD"
+         sh 'docker push honeyedu'
+        }
+
+        stage('Helm Setup') {
+                    // Install Helm if it's not already installed
+                    sh 'curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash'
+        }
+
+        stage('Helm Init') {
+                    // Initialize Helm (if necessary, for Helm 2.x or if using Helm 3 without Tiller)
+                    sh 'helm repo add stable https://charts.helm.sh/stable'
+                    sh 'helm repo update'
+            }
+
+        stage('Deploy with Helm') {
+                    sh '''
+                    helm upgrade --install honeyedu ./charts/my-app --namespace honeyedu \
+                        --set image.tag=${GIT_COMMIT} \
+                        --set image.repository=saritha752/honeyedu
+                    '''
+                }
+        stage('Verify Deployment') {
+                    // Check the status of the deployed release
+                    sh 'helm status my-app --namespace honeyedu'
+                }
+         }
+    }
+    
+    } catch (Exception e) {
+        echo "An error occurred: ${e.message}"
+        currentBuild.result = 'FAILURE'
+        // Optionally, you can add cleanup or additional error handling here
+    } finally {
+        // This block will always run, regardless of success or failure
+        echo 'Cleaning up...'
+    }
+
+    post {
+        always {
+            // Clean up or notify in case of any failure
+            echo 'Cleaning up after deployment'
+        }
+        success {
+            echo 'Deployment was successful!'
+        }
+        failure {
+            echo 'Deployment failed!'
+        }
+    }
+}
+}
