@@ -26,14 +26,14 @@ node {
         }
         stage('Build Docker Image') {
            env.PATH = "/usr/local/bin:${env.PATH}"
-           sh 'docker build -t $DOCKER_USERNAME/honeysedu .'
+           sh 'docker build -t $DOCKER_USERNAME/honeycedu .'
            }
         
         stage('Push Docker Image') {
          env.PATH = "/usr/local/bin:${env.PATH}"
          withCredentials([usernamePassword(credentialsId: '70052536-5c15-4d30-ab46-bb4f5954ed5b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
          sh "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD"
-         sh 'docker push $DOCKER_USERNAME/honeysedu'
+         sh 'docker push $DOCKER_USERNAME/honeycedu'
         }
       }   
         stage('Helm Setup') {
@@ -49,7 +49,8 @@ node {
 
         stage('Deploy with Helm') {
                     sh '''
-                   helm install --kube-context minikube honeyedu ./honeyedu 
+                   helm package honeyedu
+                   helm install prod-release honeyedu-0.1.0.tgz
                    '''
                 }
         
