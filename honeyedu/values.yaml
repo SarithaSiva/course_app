@@ -1,0 +1,42 @@
+# values.yaml
+apiVersion: v1
+Release:
+  Name: prod-release
+# Default values for my-app.
+replicaCount: 3
+
+image:
+  repository: saritha752/honeycedu
+  pullPolicy: Always
+  tag: latest
+
+imagePullSecrets:
+  - name: my-registry-secret
+
+service:
+  type: LoadBalancer
+  port: 80
+
+serviceAccount:
+  create: true  # Set this to `true` if you want Helm to create the ServiceAccount, or `false` if not.
+  name: honeyedu-sa  # Optional: if you want to specify the name of the service account.
+
+# Ingress settings (if you want to expose it via HTTP)
+ingress:
+  enabled: false
+controller:
+  ingressClass: "nginx"
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: 10254
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 5
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: 10254
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    failureThreshold: 5

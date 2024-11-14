@@ -49,10 +49,8 @@ node {
 
         stage('Deploy with Helm') {
                     sh '''
-                    helm upgrade --install honeyedu ./charts/my-app --namespace honeyedu \
-                        --set image.tag=${GIT_COMMIT} \
-                        --set image.repository=saritha752/honeyedu
-                    '''
+                   helm install --kube-context minikube honeyedu ./honeyedu 
+                   '''
                 }
         
         stage('Verify Deployment') {
