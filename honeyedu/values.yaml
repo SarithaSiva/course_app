@@ -17,10 +17,6 @@ service:
   type: LoadBalancer
   port: 80
 
-serviceAccount:
-  create: true  # Set this to `true` if you want Helm to create the ServiceAccount, or `false` if not.
-  name: honeyedu-sa  # Optional: if you want to specify the name of the service account.
-
 # Ingress settings (if you want to expose it via HTTP)
 ingress:
   enabled: false

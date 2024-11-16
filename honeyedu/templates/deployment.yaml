@@ -1,22 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}
-  labels:
-    app: {{ .Release.Name }}
+  name: honeyedu
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 3
   selector:
     matchLabels:
-      app: {{ .Release.Name }}
+      app: honeyedu
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}
+        app: honeyedu
     spec:
+      imagePullSecrets:
+       - name: my-registry-secret  # Add this line
       containers:
-      - name: {{ .Release.Name }}
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+      - name: honeyedu
+        image: saritha752/honeyedu:latest
         ports:
         - containerPort: 80
