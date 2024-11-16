@@ -26,7 +26,7 @@ node {
         }
         stage('Build Docker Image') {
            env.PATH = "/usr/local/bin:${env.PATH}"
-           sh 'docker build -t $DOCKER_USERNAME/honeycedu:latest .'
+           sh 'docker build -t saritha752/honeycedu:latest .'
            }
         
         stage('Push Docker Image') {
@@ -37,8 +37,22 @@ node {
         }
       }   
         stage('Helm Setup') {
-                    // Install Helm if it's not already installed
-                sh 'curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash'
+sh 'curl -fsSL https://get.helm.sh/helm-v3.9.1-linux-amd64.tar.gz -o helm.tar.gz'
+
+                    // Extract the Helm binary
+                    sh 'tar -zxvf helm.tar.gz'
+
+                    // Create the target directory if it does not exist
+                    sh 'mkdir -p $HOME/.local/bin'
+
+                    // Move Helm binary to ~/.local/bin directory
+                    sh 'mv linux-amd64/helm $HOME/.local/bin/helm'
+
+                    // Update PATH to include ~/.local/bin
+                    sh 'echo "export PATH=$HOME/.local/bin:$PATH" >> ~/.bashrc'
+
+                    // Verify Helm installation
+                    sh 'helm version'
         }
 
         stage('Helm Init') {
@@ -50,14 +64,14 @@ node {
         stage('Deploy with Helm') {
                     sh '''
                    helm package honeyedu
-                   helm install prod-release honeyedu-0.1.0.tgz
+                   helm upgrade prod-release honeyedu-0.1.0.tgz
                    '''
                 }
         
         stage('Verify Deployment') {
                     // Check the status of the deployed release
-                    sh 'helm status my-app --namespace honeyedu'
-                }   
+                    sh 'helm status prod-release'
+                }
      }
                 
      catch (Exception e) {
