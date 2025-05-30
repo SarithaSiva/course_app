@@ -17,6 +17,9 @@ RUN npm run build
 
 # Use a lightweight Nginx image for serving the static files
 FROM nginx:alpine
+RUN mkdir -p /var/cache/nginx/client_temp && \
+    chown -R 1001:0 /var/cache/nginx
+USER 1001
 
 # Copy the build output to the Nginx web server directory
 COPY --from=build /app/build /usr/share/nginx/html
